@@ -3,7 +3,9 @@ var bouquetModel = require('./bouquet');
 var flowerModel = require('./flower');
 var flowers = {};
 var bouquets = {};
+var FLOWERS_LIMIT = 256;
 
+// Store new flower with flowers of the same size and type
 function addToFlowers(flower) {
   if (!flowers[flower.size]) {
     flowers[flower.size] = {};
@@ -59,7 +61,7 @@ function addExtraFlowers(newBouquet, availableFlowers, type, num) {
 
 function createBouquet(bouquet, availableFlowers) {
   debug("Design rule: " + bouquet.rule);
-  debug("Flowers before bouquet");
+  debug("Flowers (%s) before bouquet", bouquet.size);
   debug(availableFlowers);
   // We create a new bouquet based on the design rule
   var newBouquet = bouquetModel.parseBouquet(bouquet.rule);
@@ -73,7 +75,8 @@ function createBouquet(bouquet, availableFlowers) {
   newBouquet.total = bouquetRequired;
 
   var totalExtra = bouquet.total - bouquetRequired;
-  Object.keys(availableFlowers).forEach(function (type) {
+  var availableFlowerTypes = Object.keys(availableFlowers);
+  availableFlowerTypes.forEach(function (type) {
     if (type === 'total')
       return;
 
@@ -90,13 +93,14 @@ function createBouquet(bouquet, availableFlowers) {
       }
     }
   });
-  debug("Flowers after bouquet");
+  debug("Flowers (%s) after bouquet", bouquet.size);
   debug(availableFlowers);
 
-  console.log(bouquetModel.toString(newBouquet));
   return newBouquet;
 }
 
+// Checks if there are enough flowers for the bouquet
+// Returns the new bouquet if enough flowers. Otherwise, false
 function checkIfReady(bouquet) {
   var availableFlowers = flowers[bouquet.size];
   var isEnough = checkIfEnoughFlowers(bouquet, availableFlowers);
@@ -106,6 +110,8 @@ function checkIfReady(bouquet) {
   return false;
 }
 
+// Iterate through the bouquet designs available and return
+// new bouquet if if can be assembled with available flowers
 function checkForBouquet(size) {
   for(var i=0; i<bouquets[size].length; i++) {
     var bouquet = checkIfReady(bouquets[size][i]);
@@ -121,6 +127,20 @@ function processFlower (flower) {
     return;
 
   addToFlowers(flower);
+
+  // EXTRA TASK: exiting if maximum number of flowers is exceeded
+  var totalFlowers = Object.keys(flowers).map(function (flowerSize) {
+    return flowers[flowerSize].total;
+  }).reduce(function (acc, curr) {
+    return acc + curr;
+  }, 0);
+  debug('Total number of flowers: ' + totalFlowers);
+
+  if (totalFlowers > FLOWERS_LIMIT) {
+    console.log('Maximum number of flowers exceeded');
+    process.exit(1);
+  }
+
   return checkForBouquet(flower.size);
 }
 
