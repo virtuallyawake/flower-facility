@@ -23,3 +23,15 @@ DEBUG=bloomon:* node main.js < test_input.txt
 ```bash
 npm test
 ```
+
+# Docker image
+
+## How to build Docker image
+```bash
+sudo docker build -t daniela/bloomon-app .
+```
+
+## How to run Docker image
+```bash
+sudo docker run -i daniela/bloomon-app < test_input.txt
+```
